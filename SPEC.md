@@ -1,8 +1,8 @@
-# Remove.bg 克隆 — AI 自動去背服務 — 規格計劃書 v2.2.1
+# Remove.bg 克隆 — AI 自動去背 — 規格計劃書 v2.2.1
 
 > 版本：v2.2.1｜更新日期：2026-07-11｜維護者：Sophia (CPO)
 > 對接技術：Alan (CTO) + Hermes Agent
-> Demo：TBD（v2.2.1 規格階段，待 Sprint 1 部署）
+> **Demo**：https://remove-bg-blue-nine.vercel.app ⭐ Vercel Production 2026-07-11 上線
 > 原始碼：https://github.com/openclawsean024-create/remove-bg
 > 克隆自：https://www.remove.bg/zh-tw （remove.bg by Canva Austria GmbH）
 > 市場分析素材：/tmp/remove-bg-analysis/REPORT.md
