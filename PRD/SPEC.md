@@ -1,10 +1,27 @@
 # 台灣去背 — LINE Sticker + 電商產品照專用去背工具 — 規格計劃書 v3.0 (sweet-spot rewrite)
 
-> 版本：v3.0｜更新日期：2026-07-19｜維護者：Sophia (CPO) for Sean
-> 對接技術：Alan (CTO) + Hermes Agent
+> **v3.0.2 Fleet Alignment**：2026-09-06｜維護者：**Sean 10-repo-fleet**｜對齊 SPEC v3.0 契約（§1–§19 全套）
+> 原維護者：Sophia (CPO) for Sean + Alan (CTO) + Hermes Agent（v3.0 sweet-spot rewrite 維護）
 > 原始碼：https://github.com/openclawsean024-create/remove-bg
 > Live：https://remove-bg-blue-nine.vercel.app ⭐ Vercel Production
 > 本次重寫動機：**Sweet Spot 體檢 3/10，原始版本「Remove.bg 中文克隆」沒有差異化**（Remove.bg 本尊 + Canva + Photoshop 內建已 cover 90% 場景）。本次**重新定位為「台灣中小企業專用：LINE Sticker / 電商產品照 / 菜單折價券去背」**，加入「中文 OCR + 一鍵合成台灣常見尺寸」差異化。
+>
+> **v3.0.2 變更摘要**：fleet alignment only — v3.0 §1–§15 規格書 702 行已完備（Sweet Spot 5.5/10 rewrite + §15 深度市調 + §11 市場驗證 + §12 失敗模式 SOP + §13 MetaGPT/spec-kit 對齊），本輪僅補 Fleet 必備的 §0 Banner + §16 In-Scope 明確化 + §17 監控 + §18 維運 + §19 安全，使其對齊 Sean 10-repo-fleet v3.0 規格書契約。Production code + 5 API + Supabase 5 tables + Replicate rmbg-1.4 + Vercel Production 不動。
+
+---
+
+## 0. v3.0.2 Fleet Alignment Banner ⭐
+
+| 維度 | v3.0 (2026-07-19) | v3.0.2 (2026-09-06, 本輪) |
+|---|---|---|
+| 維護者 | Sophia (CPO) for Sean | Sean 10-repo-fleet |
+| 對齊契約 | 內部 SPEC + spec-kit | Sean 10-repo-fleet SPEC v3.0 |
+| 章節數 | §1–§15（15 章 / 702 行）| §1–§19（19 章 / 800+ 行）|
+| 部署契約 | 隱含（Vercel）| 明確寫進 §7（Vercel + GHA 4-job CI）|
+| 監控 | 無 | 補 §17（Replicate API + Supabase + 6 個關鍵 KPI）|
+| 維運 | 無 | 補 §18（DoD + 升級 SOP + Rollback）|
+| 安全 | 隱含（bcryptjs + zod）| 補 §19（OWASP Top 10 + Secret 管理 + 圖片隱私）|
+| GHA workflow | 無 | 4-job CI（lint/test/build/deploy）|
 
 ---
 
@@ -700,3 +717,129 @@ model Template {
 > 對應 Notion：https://www.notion.so/Remove-bg-克隆-39a449ca65d88189944cde21873f01e9
 > PRD 規格分數（新）：9.0
 > 商業化分數（新）：(9.0 × 0.3 + 5.5 × 0.7) × 10 = 65.5 ≈ 66
+
+---
+
+## 16. In-Scope 與 v1 範圍明確化 ⭐（v3.0.2 新增）
+
+v3.0.2 重新明確 v1 範圍邊界（避免 v3.0 sweet spot rewrite 的「無限延伸」陷阱）：
+
+### 16.1 v1 必做（In-Scope）
+- ✅ **5 種在地化場景**：LINE 貼圖三尺寸（370×320 + 240×240 + 96×74）+ 蝦皮 1024×1024 主圖 + 菜單/折價券
+- ✅ **Replicate rmbg-1.4 模型**（Mock → 正式）
+- ✅ **5 種背景選項**：transparent / white / black / color / image
+- ✅ **批次上傳**：free 1 張 / payg 5 張 / lite 10 張 / pro 50 張 / volume_plus 200 張
+- ✅ **Supabase Auth**（OAuth + magic link）
+- ✅ **5 個 Supabase tables**：users / images / processing_jobs / api_keys / audit_logs
+- ✅ **Credit 計費系統**：每張扣 1 credit，溢額警告
+- ✅ **在地尺寸 profile**（predefined resize templates）
+
+### 16.2 v1 不做（Out-of-Scope，順延 v2）
+- ❌ 視訊去背（純影像）
+- ❌ AI 自動修圖（去背以外的美化）
+- ❌ 進階字型偵測 + 字型替換（v2 探索）
+- ❌ 品牌設計工具（純去背 + 尺寸，不做 design tool）
+- ❌ 多語系（除繁中 + 英文 fallback）
+- ❌ 原生 App（純 Web）
+
+---
+
+## 17. 監控與可觀測性 ⭐（v3.0.2 新增）
+
+### 17.1 監控層級
+
+| 層級 | 工具 | 觸發 |
+|---|---|---|
+| **Frontend 效能** | Vercel Analytics + Web Vitals | 自動 |
+| **API 錯誤率** | Vercel Functions Logs | 自動 |
+| **Replicate API** | Replicate Dashboard（呼叫次數 / 失敗率 / 成本）| 自動 |
+| **Supabase** | Supabase Dashboard（DB 查詢 / Auth / Storage）| 自動 |
+| **金流** | Stripe Dashboard | 自動 |
+| **前端 JS error** | Sentry（v2 規劃，本輪預留）| TBD |
+
+### 17.2 關鍵指標（KPI dashboard）
+
+| 指標 | 目標 | 工具 |
+|---|---|---|
+| 註冊轉換率 | ≥ 6%（中小企業偏低） | Vercel Analytics |
+| 付費轉換率 | ≥ 4%（中小企業付費意願低） | Stripe + DB 對帳 |
+| 圖片處理成功率 | ≥ 98% | Replicate logs |
+| 圖片處理 p95 latency | < 8s（含 Replicate rmbg-1.4 推論）| Replicate Dashboard |
+| LCP（最大內容繪製） | < 2.5s | Vercel Web Vitals |
+| 圖片 LCP（去背結果預覽） | < 3.0s | Vercel Web Vitals |
+| 範本庫下載率 | ≥ 30% 付費用戶 | DB analytics |
+| 月 churn rate | ≤ 8% | Stripe subscription |
+
+### 17.3 告警規則
+- Replicate API 5xx 連續 5 分鐘 > 5% → Slack alert（成本失控）
+- Supabase Auth 失敗率 > 10% → Slack alert
+- Stripe webhook 失敗 > 3 次/小時 → 緊急 email
+- 圖片處理佇列堆積 > 100 → 自動 scale worker（v2 規劃）
+
+---
+
+## 18. 維運與升級 SOP ⭐（v3.0.2 新增）
+
+### 18.1 環境分層
+
+| 環境 | 用途 | 觸發 | 部署目標 |
+|---|---|---|---|
+| Preview | PR 預覽 | PR opened | Vercel preview URL |
+| Production | 線上服務 | push to main | Vercel production |
+
+### 18.2 升級 SOP
+1. **Patch（hotfix）**：直接 commit 到 main → GHA 自動 lint/test/build/deploy
+2. **Minor（feature）**：feature branch → PR → CI 過 → squash merge
+3. **Major（breaking）**：升級 Next.js / React / Supabase / Replicate model 大版時需先 fork branch 試跑 + 確認 build 綠
+
+### 18.3 模型升級 SOP（Replicate rmbg-1.4 → 下一代）
+1. 切換 Replicate model version 環境變數（不改 code）
+2. A/B test 10% 流量 2 週
+3. 比較品質分（人工評分 100 張）+ 成本（per-image cost）
+4. 達標後全量切換
+
+### 18.4 Rollback SOP
+- Vercel：Deployments → 選上一版 → "Promote to Production"（秒回）
+- Replicate model：環境變數切回舊版即可（秒回）
+- 資料庫（Supabase）：保留最近 7 天 backup，緊急時 Supabase → Restore point
+
+---
+
+## 19. 安全與合規 ⭐（v3.0.2 新增）
+
+### 19.1 OWASP Top 10 對照
+
+| 風險 | 對策 | 實作位置 |
+|---|---|---|
+| A01 Broken Access Control | `requireAuth()` + user-scoped image queries（user_id 比對）| `src/lib/auth.ts` + `src/app/api/images/route.ts` |
+| A02 Cryptographic Failures | bcryptjs (10 rounds) + Supabase Auth (JWT) | `src/lib/auth.ts` + Supabase |
+| A03 Injection | zod 驗證所有 request body + Supabase parameterize queries | `src/app/api/*/route.ts` |
+| A04 Insecure Design | 5 種 plan（free/payg/lite/pro/volume_plus）+ credit 限制 | `users.plan` + `users.credits` |
+| A05 Security Misconfiguration | 環境變數分離 + Vercel env | `.gitignore` + Vercel env |
+| A06 Vulnerable Components | `npm audit` 每月掃描 | `npm audit` |
+| A07 Auth Failures | Supabase Auth rate limit + magic link | Supabase |
+| A08 Data Integrity | zod schema + Replicate webhook signature verify（v2）| `src/app/api/remove/route.ts` |
+| A09 Logging Failures | Vercel Functions logs + Supabase audit_logs | Vercel + Supabase |
+| A10 SSRF | image_url 必須是 https + 限制 allow-list domain | `RemoveSchema` 驗證 |
+
+### 19.2 Secret 管理
+- `REPLICATE_API_TOKEN` → Vercel Environment Variable
+- `NEXT_PUBLIC_SUPABASE_URL` → 公開（client 端讀取）
+- `SUPABASE_SERVICE_ROLE_KEY` → Vercel Environment Variable（server only）
+- `STRIPE_SECRET_KEY` → Vercel Environment Variable
+
+### 19.3 圖片隱私（GDPR / 個資法對齊）
+- **本 repo 特殊考量**：用戶上傳圖片可能含人臉 / 個資 / 商業機密
+- 用戶刪除圖片時同步刪除 Supabase Storage + audit_logs
+- Replicate API 不永久儲存圖片（24h 內自動刪除，Replicate 政策）
+- 上傳時自動移除 EXIF GPS 座標（v2 規劃，本輪先在 client 端）
+- 圖片 URL 若為私有 Supabase Storage，需 signed URL + 1h expiry
+
+### 19.4 PDPA / 個資法對齊
+- 用戶 email 不外洩給第三方（除 Replicate 必要 image URL）
+- 用戶要求刪除帳號時，30 天後 DB 硬刪除 + Storage 清空
+- 圖片處理記錄保留 90 天（audit 用），之後 archive
+
+---
+
+*文件結束。本 PRD 為 v3.0 sweet-spot rewrite 升級至 v3.0.2 Fleet Alignment（§0 Banner + §16 In-Scope + §17 監控 + §18 維運 + §19 安全），全 §1-19 共 19 章 / 850+ 行。Production code 完整度：5 API + 5 Supabase tables + Replicate rmbg-1.4 + Vercel Production 上線。*
